@@ -6,6 +6,9 @@ project(base)
 # 本板差异
 # ThreadX configuration for Cortex-M3 / GCC
 set(THREADX_ARCH cortex_m3)
+# 本板 CubeMX 未启用 USB OTG，关闭 BSP USB 和 CherryUSB DWC2 端口
+set(BSP_USB_ENABLE OFF)
+set(CONFIG_CHERRYUSB_DEVICE_DWC2_ST OFF CACHE BOOL "" FORCE)
 # 公共构建逻辑
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/board_common.cmake)
 

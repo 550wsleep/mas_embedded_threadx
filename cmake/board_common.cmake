@@ -41,6 +41,11 @@ add_subdirectory(cmake/stm32cubemx)
 # Add ThreadX RTOS
 add_subdirectory(${MAS_ROOT}/threadx threadx)
 
+# BSP 外设默认配置（板级可在 include 前覆盖）
+if(NOT DEFINED BSP_USB_ENABLE)
+    set(BSP_USB_ENABLE ON)
+endif()
+
 # Add shared project libraries
 add_subdirectory(${MAS_ROOT}/utils     ${CMAKE_CURRENT_BINARY_DIR}/utils)
 add_subdirectory(${MAS_ROOT}/board/bsp ${CMAKE_CURRENT_BINARY_DIR}/bsp)
@@ -61,7 +66,7 @@ target_include_directories(CMSISDSP PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Drivers/C
 # CherryUSB Device CDC ACM
 set(CONFIG_CHERRYUSB_DEVICE ON CACHE BOOL "Enable CherryUSB device stack" FORCE)
 set(CONFIG_CHERRYUSB_DEVICE_CDC_ACM ON CACHE BOOL "Enable CDC ACM class" FORCE)
-set(CONFIG_CHERRYUSB_DEVICE_DWC2_ST ON CACHE BOOL "Use DWC2 OTG with STM32 glue" FORCE)
+set(CONFIG_CHERRYUSB_DEVICE_DWC2_ST ON CACHE BOOL "Use DWC2 OTG with STM32 glue")
 set(CONFIG_CHERRYUSB_OSAL "threadx" CACHE STRING "Use ThreadX OS abstraction layer" FORCE)
 
 include(${MAS_ROOT}/CherryUSB/cherryusb.cmake)
