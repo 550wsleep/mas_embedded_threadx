@@ -1,19 +1,8 @@
 # bsp library
-# 外设编译由 BSP_*_ENABLE 变量控制，board_common.cmake 设默认值，板级可覆盖
+# 外设编译由 BSP_*_ENABLE 变量控制，board_common.cmake 设默认值 ON，板级可覆盖
 
 set(_bsp_sources
     bsp_init.c
-    DWT/bsp_dwt.c
-    UART/bsp_uart.c
-    SPI/bsp_spi.c
-    I2C/bsp_i2c.c
-    FLASH/bsp_flash.c
-    GPIO/bsp_gpio.c
-    PWM/bsp_pwm.c
-    LED/bsp_led.c
-    BEEP/bsp_beep.c
-    CAN/bsp_can.c
-    CAN/bsp_can_task.c
 )
 
 set(_bsp_links
@@ -22,9 +11,39 @@ set(_bsp_links
     utils
 )
 
+if(BSP_DWT_ENABLE)
+    list(APPEND _bsp_sources DWT/bsp_dwt.c)
+endif()
+if(BSP_UART_ENABLE)
+    list(APPEND _bsp_sources UART/bsp_uart.c)
+endif()
+if(BSP_SPI_ENABLE)
+    list(APPEND _bsp_sources SPI/bsp_spi.c)
+endif()
+if(BSP_I2C_ENABLE)
+    list(APPEND _bsp_sources I2C/bsp_i2c.c)
+endif()
+if(BSP_FLASH_ENABLE)
+    list(APPEND _bsp_sources FLASH/bsp_flash.c)
+endif()
+if(BSP_GPIO_ENABLE)
+    list(APPEND _bsp_sources GPIO/bsp_gpio.c)
+endif()
+if(BSP_PWM_ENABLE)
+    list(APPEND _bsp_sources PWM/bsp_pwm.c)
+endif()
 if(BSP_USB_ENABLE)
     list(APPEND _bsp_sources USB/usbd_cdc_acm_user.c)
     list(APPEND _bsp_links cherryusb)
+endif()
+if(BSP_LED_ENABLE)
+    list(APPEND _bsp_sources LED/bsp_led.c)
+endif()
+if(BSP_BEEP_ENABLE)
+    list(APPEND _bsp_sources BEEP/bsp_beep.c)
+endif()
+if(BSP_CAN_ENABLE)
+    list(APPEND _bsp_sources CAN/bsp_can.c CAN/bsp_can_task.c)
 endif()
 
 add_library(bsp OBJECT ${_bsp_sources})
