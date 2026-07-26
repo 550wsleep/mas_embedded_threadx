@@ -37,9 +37,8 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
 extern CAN_HandleTypeDef hcan1;
+/* USER CODE END Includes */
 extern CAN_HandleTypeDef hcan2;
 
 /* USER CODE BEGIN Private defines */
