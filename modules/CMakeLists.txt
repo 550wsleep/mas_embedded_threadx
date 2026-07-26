@@ -115,6 +115,21 @@ if(MODULE_BOARDCOMM)
     list(APPEND _module_includes ${CMAKE_CURRENT_SOURCE_DIR}/BOARDCOMM)
 endif()
 
+if(MODULE_SERIAL_LEG_SOLUTION)
+    list(APPEND _module_sources
+        algorithm/serial_leg_solution/observer/observer.c
+        algorithm/serial_leg_solution/kinematics/kinematics.c
+        algorithm/serial_leg_solution/LQR/LQR_leg.c
+        algorithm/serial_leg_solution/VMC/VMC.c
+    )
+    list(APPEND _module_includes 
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/observer
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/kinematics
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/LQR
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/VMC
+    )
+endif()
 
 # 创建库
 add_library(modules OBJECT ${_module_sources})
