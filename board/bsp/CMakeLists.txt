@@ -1,5 +1,5 @@
 # bsp library
-# 外设编译由 BSP_*_ENABLE 变量控制，board_common.cmake 设默认值 ON，板级可覆盖
+# 外设编译由 BSP_*_ENABLE 变量控制，board_common.cmake 设默认值，板级可覆盖
 
 set(_bsp_sources
     bsp_init.c
@@ -49,6 +49,13 @@ endif()
 add_library(bsp OBJECT ${_bsp_sources})
 
 target_compile_options(bsp PRIVATE -O2)
+
+# 将 BSP_*_ENABLE 变量传递给 C 代码，供 bsp_init.c 条件编译
+foreach(_bsp_mod DWT UART SPI I2C FLASH GPIO PWM LED BEEP CAN USB)
+    if(BSP_${_bsp_mod}_ENABLE)
+        target_compile_definitions(bsp PRIVATE BSP_${_bsp_mod}_ENABLE=1)
+    endif()
+endforeach()
 
 target_include_directories(bsp PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
