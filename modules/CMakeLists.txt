@@ -5,7 +5,6 @@ set(_module_sources
     algorithm/user_lib.c
     algorithm/crc_rm.c
     algorithm/lqr.c
-    algorithm/chassis_type.c
 )
 
 # _generated_dir 由 cmake/board_common.cmake 设置，随目录作用域继承到这里
@@ -83,6 +82,10 @@ if(MODULE_SUPERCAP)
 endif()
 
 if(MODULE_MOTOR)
+    # 底盘运动学：只有单板/底盘板才需要
+    if(BOARD STREQUAL "single" OR BOARD STREQUAL "chassis")
+        list(APPEND _module_sources algorithm/chassis_type.c)
+    endif()
     list(APPEND _module_sources
         MOTOR/module_motor.c
         MOTOR/motor_base.c
