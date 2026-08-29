@@ -1,8 +1,8 @@
 /*
  * @Author: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
  * @Date: 2026-07-24 18:16:58
- * @LastEditors: error: error: git config user.name & please set dead value or install git && error: git config user.email & please set dead value or install git & please set dead value or install git
- * @LastEditTime: 2026-07-24 18:36:14
+ * @LastEditors: 550wsleep 1329258004@qq.com
+ * @LastEditTime: 2026-08-28 21:00:51
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\robot_control.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -17,7 +17,7 @@
 #include "robot_control.h"
 #include "tx_api.h"
 #include "bsp_def.h"
-#include "dm8009test.h"
+#include "chassis_func.h"
 #include "user_lib.h"
 #include "module_offline.h"
 
