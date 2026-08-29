@@ -82,19 +82,21 @@ if(MODULE_SUPERCAP)
 endif()
 
 if(MODULE_MOTOR)
+    # 底盘运动学：只有单板/底盘板才需要
+    if(BOARD STREQUAL "single" OR BOARD STREQUAL "chassis")
+        list(APPEND _module_sources algorithm/chassis_type.c)
+    endif()
     list(APPEND _module_sources
         MOTOR/module_motor.c
         MOTOR/motor_base.c
+        MOTOR/motor_algorithm.c
         MOTOR/DJI/motor_dji.c
         MOTOR/POWER_CONTROL/power_control.c
         MOTOR/DAMIAO/motor_damiao.c
         MOTOR/SERVO/motor_servo.c
         MOTOR/ZDT_STEPMOTOR/motor_zdt.c
+        MOTOR/LK/motor_lk.c
     )
-    # 底盘运动学：只有单板/底盘板才需要
-    if(BOARD STREQUAL "single" OR BOARD STREQUAL "chassis")
-        list(APPEND _module_sources algorithm/chassis_type.c)
-    endif()
     list(APPEND _module_includes
         ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR
         ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR/DJI
@@ -102,6 +104,7 @@ if(MODULE_MOTOR)
         ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR/SERVO
         ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR/ZDT_STEPMOTOR
         ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR/POWER_CONTROL
+        ${CMAKE_CURRENT_SOURCE_DIR}/MOTOR/LK
     )
 endif()
 
@@ -126,20 +129,21 @@ if(MODULE_SERIAL_LEG_SOLUTION)
         algorithm/serial_leg_solution/LQR/LQR_leg.c
         algorithm/serial_leg_solution/VMC/VMC.c
         algorithm/serial_leg_solution/leg_length/length_control.c
-        algorithm/serial_leg_solution/roll_comp/roll_control.c 
+        algorithm/serial_leg_solution/roll_comp/roll_control.c
         algorithm/serial_leg_solution/leg_coor/leg_coor.c
     )
-    list(APPEND _module_includes 
+    list(APPEND _module_includes
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/observer
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/kinematics
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/LQR
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/VMC
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/leg_length
-        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/roll_comp  
-        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/leg_coor  
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/roll_comp
+        ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/leg_coor
     )
 endif()
+
 
 # 创建库
 add_library(modules OBJECT ${_module_sources})

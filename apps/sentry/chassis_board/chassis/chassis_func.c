@@ -203,25 +203,25 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
         {
             if (chassis_cmd->chassis_mode == chassis_zero_force)
             {
-                Motor_DJI_Stop(chassis_motors[0]);
-                Motor_DJI_Stop(chassis_motors[1]);
-                Motor_DJI_Stop(chassis_motors[2]);
-                Motor_DJI_Stop(chassis_motors[3]);
-                Motor_DJI_Stop(chassis_motors[4]);
-                Motor_DJI_Stop(chassis_motors[5]);
-                Motor_DJI_Stop(chassis_motors[6]);
-                Motor_DJI_Stop(chassis_motors[7]);
+                Motor_Stop((Motor_Base *)chassis_motors[0]);
+                Motor_Stop((Motor_Base *)chassis_motors[1]);
+                Motor_Stop((Motor_Base *)chassis_motors[2]);
+                Motor_Stop((Motor_Base *)chassis_motors[3]);
+                Motor_Stop((Motor_Base *)chassis_motors[4]);
+                Motor_Stop((Motor_Base *)chassis_motors[5]);
+                Motor_Stop((Motor_Base *)chassis_motors[6]);
+                Motor_Stop((Motor_Base *)chassis_motors[7]);
             }
             else
             {
-                Motor_DJI_Start(chassis_motors[0]);
-                Motor_DJI_Start(chassis_motors[1]);
-                Motor_DJI_Start(chassis_motors[2]);
-                Motor_DJI_Start(chassis_motors[3]);
-                Motor_DJI_Start(chassis_motors[4]);
-                Motor_DJI_Start(chassis_motors[5]);
-                Motor_DJI_Start(chassis_motors[6]);
-                Motor_DJI_Start(chassis_motors[7]);
+                Motor_Start((Motor_Base *)chassis_motors[0]);
+                Motor_Start((Motor_Base *)chassis_motors[1]);
+                Motor_Start((Motor_Base *)chassis_motors[2]);
+                Motor_Start((Motor_Base *)chassis_motors[3]);
+                Motor_Start((Motor_Base *)chassis_motors[4]);
+                Motor_Start((Motor_Base *)chassis_motors[5]);
+                Motor_Start((Motor_Base *)chassis_motors[6]);
+                Motor_Start((Motor_Base *)chassis_motors[7]);
             }
 
             // 根据控制模式设定旋转速度
@@ -261,21 +261,21 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
             float        total_angle_rad = chassis_cmd->offset_angle * DEGREE_2_RAD;
             cos_theta                    = arm_cos_f32(total_angle_rad);
             sin_theta                    = arm_sin_f32(total_angle_rad);
-            chassis_vx                   = chassis_cmd->vx * cos_theta - chassis_cmd->vy * sin_theta;
-            chassis_vy                   = chassis_cmd->vx * sin_theta + chassis_cmd->vy * cos_theta;
+            chassis_vx                   = chassis_cmd->vx * cos_theta + chassis_cmd->vy * sin_theta;
+            chassis_vy                   = -chassis_cmd->vx * sin_theta + chassis_cmd->vy * cos_theta;
 
             Chassis_Swerve_Calc(chassis_motors, &chassis_swerve_config, chassis_vx, chassis_vy, chassis_wz);
         }
         else
         {
-            Motor_DJI_Stop(chassis_motors[0]);
-            Motor_DJI_Stop(chassis_motors[1]);
-            Motor_DJI_Stop(chassis_motors[2]);
-            Motor_DJI_Stop(chassis_motors[3]);
-            Motor_DJI_Stop(chassis_motors[4]);
-            Motor_DJI_Stop(chassis_motors[5]);
-            Motor_DJI_Stop(chassis_motors[6]);
-            Motor_DJI_Stop(chassis_motors[7]);
+            Motor_Stop((Motor_Base *)chassis_motors[0]);
+            Motor_Stop((Motor_Base *)chassis_motors[1]);
+            Motor_Stop((Motor_Base *)chassis_motors[2]);
+            Motor_Stop((Motor_Base *)chassis_motors[3]);
+            Motor_Stop((Motor_Base *)chassis_motors[4]);
+            Motor_Stop((Motor_Base *)chassis_motors[5]);
+            Motor_Stop((Motor_Base *)chassis_motors[6]);
+            Motor_Stop((Motor_Base *)chassis_motors[7]);
         }
     }
 }
