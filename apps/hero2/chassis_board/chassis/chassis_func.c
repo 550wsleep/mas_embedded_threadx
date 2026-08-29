@@ -2,6 +2,14 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-08-28 21:08:45
  * @LastEditors: 550wsleep 1329258004@qq.com
+ * @LastEditTime: 2026-08-29 14:54:40
+ * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
+/*
+ * @Author: 550wsleep 1329258004@qq.com
+ * @Date: 2026-08-28 21:08:45
+ * @LastEditors: 550wsleep 1329258004@qq.com
  * @LastEditTime: 2026-08-29 13:40:56
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
@@ -90,6 +98,7 @@
 #include "motor_def.h"
 #include "motor_damiao.h"
 #include "motor_dji.h"
+#include "bsp_dwt.h"
 #include "user_lib.h"
 
 #include "observer.h"
@@ -233,17 +242,17 @@ void chassis_func(void)
     if (!remote_online || !all_online) {
         for (int i = 0; i < 4; i++) {
             if (joints[i] != NULL)
-                Motor_DM_Stop(joints[i]);
+                Motor_Stop((Motor_Base *)joints[i]);
         }
         for (int i = 0; i < 2; i++) {
             if (wheels[i] != NULL)
-                Motor_DJI_Stop(wheels[i]);
+                Motor_Stop((Motor_Base *)wheels[i]);
         }
         return;
     }
 
     /* ---- 控制流水线 ---- */
-    dwt_delay_us(200);
+    BSP_DWT_Delay(0.0002f); /* 200us */
     observer_update(joints, wheels);
     kinematics_calc();
     length_control();
@@ -255,10 +264,10 @@ void chassis_func(void)
     /* ---- VMC力矩输出 x 5% ---- */
     const VMC *vmc = VMC_get();
     if (vmc != NULL) {
-        Motor_DM_SetForwardTorque(zuo_kuan, vmc->T_1_L * TORQUE_TEST_SCALE);
-        Motor_DM_SetForwardTorque(you_kuan, vmc->T_1_R * TORQUE_TEST_SCALE);
+        Motor_SetForwardTorque((Motor_Base *)zuo_kuan, vmc->T_1_L * TORQUE_TEST_SCALE);
+        Motor_SetForwardTorque((Motor_Base *)you_kuan, vmc->T_1_R * TORQUE_TEST_SCALE);
         //延时200um
-        Motor_DM_SetForwardTorque(you_xi,   vmc->T_2_R * TORQUE_TEST_SCALE);
-        Motor_DM_SetForwardTorque(zuo_xi,   vmc->T_2_L * TORQUE_TEST_SCALE);
+        Motor_SetForwardTorque((Motor_Base *)you_xi,   vmc->T_2_R * TORQUE_TEST_SCALE);
+        Motor_SetForwardTorque((Motor_Base *)zuo_xi,   vmc->T_2_L * TORQUE_TEST_SCALE);
     }
 }
