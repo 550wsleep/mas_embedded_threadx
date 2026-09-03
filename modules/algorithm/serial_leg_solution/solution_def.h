@@ -1,4 +1,4 @@
-/*
+﻿/*
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-07-26 12:10:31
  * @LastEditors: 550wsleep 1329258004@qq.com
@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #define WHEEL_R 0.05f
-#define phi_1_offset 0.0f
+#define phi_1_offset 6.08f
 #define phi_4_offset 0.0f
 
 #define AGC 50.0f//重力补偿
