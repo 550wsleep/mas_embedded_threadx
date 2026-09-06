@@ -1,4 +1,4 @@
-/*
+﻿/*
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-07-26 12:10:31
  * @LastEditors: 550wsleep 1329258004@qq.com
@@ -34,6 +34,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     float B0 = 2 * L_2 * (YD - YB);
     float C0 = L_2 * L_2 + LBD_2 - L_3 * L_3;
     float phi_2 = 2 * atan2f((B0 + sqrt(A0*A0 + B0*B0 - C0*C0)), A0 + C0);
+    out->phi_2 = phi_2;
 
     // 5. 求解phi3
     float phi_3 = atan2f(YB - YD + L_2 * arm_sin_f32(phi_2), XB - XD + L_2 * arm_cos_f32(phi_2));

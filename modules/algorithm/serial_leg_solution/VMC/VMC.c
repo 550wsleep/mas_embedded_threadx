@@ -1,4 +1,4 @@
-/*
+﻿/*
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-07-26 12:10:31
  * @LastEditors: 550wsleep 1329258004@qq.com
@@ -13,6 +13,7 @@
 #include "kinematics.h"
 #include "LQR_leg.h"
 #include "leg_coor.h"
+#include "gas_spring.h"
 
 static VMC VMC_ctrl;
 
@@ -27,8 +28,10 @@ void VMC_calc()
     // float F_L = AGC / arm_cos_f32(ki_L->theta) + le->F_L_pid;  
     // float F_R = AGC / arm_cos_f32(ki_R->theta) + le->F_R_pid; //将来要加支持力结算，解决theta摆角过大区域无穷的问题
 
-    float F_L = AGC + le->F_L_pid;  
-    float F_R = AGC + le->F_R_pid; 
+    const GasSpring    *gs   = gas_spring_get();
+
+    float F_L = AGC + le->F_L_pid - gs->Fs_L;
+    float F_R = AGC + le->F_R_pid - gs->Fs_R; 
     
     float Tp_L = lqr->Tpl + coor->Tp_L_coor;
     float Tp_R = lqr->Tpr + coor->Tp_R_coor;

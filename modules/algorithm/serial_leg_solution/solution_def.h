@@ -12,9 +12,9 @@
 
 #include <stdint.h>
 
-#define WHEEL_R 0.05f
-#define phi_1_offset 6.08f
-#define phi_4_offset 0.0f
+#define WHEEL_R 0.06f
+#define phi_1_offset 173.92f
+#define phi_4_offset 6.08f
 
 #define AGC 50.0f//重力补偿
 //观测器
@@ -50,6 +50,7 @@ typedef struct
     float dphi_0;
     float theta;
     float dtheta;
+    float phi_2;
     float J_11;
     float J_12;
     float J_21;
@@ -97,6 +98,14 @@ typedef struct
     float Tp_L_coor;
     float Tp_R_coor;
 } coordination ;
+
+//气弹簧等效力
+typedef struct
+{
+    float Fs_L;
+    float Fs_R;
+} GasSpring;
+
 
 
 #endif /* _SOLUTION_DEF_H_ */
