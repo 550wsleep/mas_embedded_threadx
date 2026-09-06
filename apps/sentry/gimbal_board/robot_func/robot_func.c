@@ -33,10 +33,11 @@ void RemoteControlSet(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_
     /* RC 在线 */
     if (state & 0x01)
     {
-        /* 摇杆 → 速度比例 (-1.0 ~ +1.0)
-         * SBUS 通道值: 中位 1024, 上 240, 下 1807 → 零偏后 -784 ~ +783 */
-        Chassis_Ctrl->vx = (float)Module_Remote_get_channel(2) / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS);
-        Chassis_Ctrl->vy = (float)Module_Remote_get_channel(1) / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS);
+        /* 摇杆 → 云台系速度 (m/s), 与导航速度同单位
+         * SBUS 通道值: 中位 1024, 上 240, 下 1807 → 零偏后 -784 ~ +783
+         * 归一化到 -1.0 ~ +1.0 后乘满杆速度 */
+        Chassis_Ctrl->vx = (float)Module_Remote_get_channel(2) / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS) * CHASSIS_MAX_SPEED_MPS;
+        Chassis_Ctrl->vy = (float)Module_Remote_get_channel(1) / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS) * CHASSIS_MAX_SPEED_MPS;
 
         int16_t ch8 = Module_Remote_get_channel(8);
         if (ch8 == SBUS_CHX_UP)
@@ -105,8 +106,8 @@ void RemoteControlSet(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_
     }
 }
 
-void gimbal_auto_func(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_Ctrl, Gimbal_Ctrl_Cmd_t *Gimbal_Ctrl,const Ins_t *Ins,
-                      ReceivePacket *receive_packet)
+void gimbal_auto_func(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_Ctrl, Gimbal_Ctrl_Cmd_t *Gimbal_Ctrl, const Ins_t *Ins,
+                      const ReceivePacket *receive_packet)
 {
     if (Gimbal_Ctrl == NULL || Gimbal_Ctrl->gimbal_mode != gimbal_auto_mode)
     {
@@ -125,7 +126,8 @@ void gimbal_auto_func(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_
 
     if (receive_packet != NULL && receive_packet->found != 0)
     {
-        if (SMALL_YAW_PITCH_MIN_ANGLE*DEGREE_2_RAD < -receive_packet->target_pitch && -receive_packet->target_pitch < SMALL_YAW_PITCH_MAX_ANGLE*DEGREE_2_RAD)
+        if (SMALL_YAW_PITCH_MIN_ANGLE * DEGREE_2_RAD < -receive_packet->target_pitch &&
+            -receive_packet->target_pitch < SMALL_YAW_PITCH_MAX_ANGLE * DEGREE_2_RAD)
         {
             // 进入跟踪模式
             Gimbal_Ctrl->auto_search = 0;
@@ -154,10 +156,10 @@ void gimbal_auto_func(Chassis_Ctrl_Cmd_t *Chassis_Ctrl, Shoot_Ctrl_Cmd_t *Shoot_
         Shoot_Ctrl->load_mode    = load_stop;
     }
 
-    if (receive_packet->nav_state == 1)
+    if (receive_packet != NULL && receive_packet->nav_state == 1)
     {
         Chassis_Ctrl->vx = receive_packet->vx;
-        Chassis_Ctrl->vy = receive_packet->vy;
+        Chassis_Ctrl->vy = -receive_packet->vy;
     }
     else
     {

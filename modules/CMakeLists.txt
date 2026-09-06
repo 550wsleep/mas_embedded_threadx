@@ -146,7 +146,12 @@ if(MODULE_SERIAL_LEG_SOLUTION)
     )
 endif()
 
-
+if(MODULE_VOFA)
+    list(APPEND _module_sources
+        VOFA/vofa.c
+    )
+    list(APPEND _module_includes ${CMAKE_CURRENT_SOURCE_DIR}/VOFA)
+endif()
 # 创建库
 add_library(modules OBJECT ${_module_sources})
 
