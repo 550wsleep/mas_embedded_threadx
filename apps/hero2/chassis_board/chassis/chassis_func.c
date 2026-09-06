@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-08-28 21:08:45
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-08-29 14:54:40
+ * @LastEditTime: 2026-09-04 21:55:19
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -20,10 +20,10 @@
  * ========== DM8009 髋关节电机 (编号 1-4, CAN1, MIT模式) ==========
  *   # | 变量  | 位置 | 安装 | 反转 |  CAN ID  | timeout_ms
  *   --|-------|------|----------|------|------|------|----------|------------
- *   1 | hip_1 | 左前 | 反装 |  Y   | 0x01/0x11 | 1000
- *   2 | hip_2 | 右前 | 正装 |  N   | 0x02/0x12 | 1000
- *   3 | hip_3 | 右后 | 正装 |  N   | 0x03/0x13 | 1000
- *   4 | hip_4 | 左后 | 反装 |  Y   | 0x04/0x14 | 1000
+ *   1 | hip_1 | 左前 | 正装 |  N   | 0x01/0x11 | 1000
+ *   2 | hip_2 | 右前 | 反装 |  Y   | 0x02/0x12 | 1000
+ *   3 | hip_3 | 右后 | 反装 |  Y   | 0x03/0x13 | 1000
+ *   4 | hip_4 | 左后 | 正装 |  N   | 0x04/0x14 | 1000
  *
  *   joints[] 顺序: {hip_4, hip_3, hip_2, hip_1}  (左后→右后→右前→左前)
  *   VMC 映射:   [0]hip_4→T_2_L  [1]hip_3→T_2_R  [2]hip_2→T_1_R  [3]hip_1→T_1_L
@@ -36,7 +36,7 @@
  *
  * ========== 控制流水线 (2ms) ==========
  * observer_update → kinematics_calc → length_control
- * → LQR_calc → leg_coor_control → roll_control → VMC_calc
+ * → LQR_calc → leg_coor_control → roll_control → gas_spring_calc → VMC_calc
  * → SetOutputTorque × TORQUE_TEST_SCALE(5%)
  *
  * ========== 安全机制 ==========
@@ -57,6 +57,7 @@
 #include "LQR_leg.h"
 #include "leg_coor.h"
 #include "roll_control.h"
+#include "gas_spring.h"
 #include "VMC.h"
 
 #include <stdint.h>
@@ -90,36 +91,36 @@ void chassis_init(void)
         },
     };
 
-    /* 左前 hip_1 (反装) */
+    /* 左前 hip_1 (正装) */
     dm_config.transport_config.can.tx_id = 0x01;
     dm_config.transport_config.can.rx_id = 0x11;
     dm_config.offline_init_config.name = "hip_1";
     dm_config.offline_init_config.beep_times = 1;
-    dm_config.setting_init_config.motor_reverse_flag = 1;
+    dm_config.setting_init_config.motor_reverse_flag = 0;
     hip_1 = Motor_DM_Init(&dm_config, DM_MIT_MODE);
 
-    /* 右前 hip_2 (正装) */
+    /* 右前 hip_2 (反装) */
     dm_config.transport_config.can.tx_id = 0x02;
     dm_config.transport_config.can.rx_id = 0x12;
     dm_config.offline_init_config.name = "hip_2";
     dm_config.offline_init_config.beep_times = 2;
-    dm_config.setting_init_config.motor_reverse_flag = 0;
+    dm_config.setting_init_config.motor_reverse_flag = 1;
     hip_2 = Motor_DM_Init(&dm_config, DM_MIT_MODE);
 
-    /* 右后 hip_3 (正装) */
+    /* 右后 hip_3 (反装) */
     dm_config.transport_config.can.tx_id = 0x03;
     dm_config.transport_config.can.rx_id = 0x13;
     dm_config.offline_init_config.name = "hip_3";
     dm_config.offline_init_config.beep_times = 3;
-    dm_config.setting_init_config.motor_reverse_flag = 0;
+    dm_config.setting_init_config.motor_reverse_flag = 1;
     hip_3 = Motor_DM_Init(&dm_config, DM_MIT_MODE);
 
-    /* 左后 hip_4 (反装) */
+    /* 左后 hip_4 (正装) */
     dm_config.transport_config.can.tx_id = 0x04;
     dm_config.transport_config.can.rx_id = 0x14;
     dm_config.offline_init_config.name = "hip_4";
     dm_config.offline_init_config.beep_times = 4;
-    dm_config.setting_init_config.motor_reverse_flag = 1;
+    dm_config.setting_init_config.motor_reverse_flag = 0;
     hip_4 = Motor_DM_Init(&dm_config, DM_MIT_MODE);
 
     /* ========== M3508 轮毂电机 x2 (CAN1, 开环) ========== */
@@ -168,6 +169,7 @@ void chassis_init(void)
     length_init();
     leg_coor_init();
     roll_init();
+    gas_spring_init();
 }
 
 void chassis_func(void)
@@ -215,6 +217,7 @@ void chassis_func(void)
     LQR_calc(0.0f, 0.0f);
     leg_coor_control();
     roll_control();
+    gas_spring_calc();
     VMC_calc();
 
     /* ---- VMC力矩输出 x 5% ---- */
@@ -225,6 +228,11 @@ void chassis_func(void)
         //延时200um
         Motor_SetOutputTorque((Motor_Base *)hip_2, vmc->T_1_R * TORQUE_TEST_SCALE);
         Motor_SetOutputTorque((Motor_Base *)hip_1, vmc->T_1_L * TORQUE_TEST_SCALE);
+    }
+    const LQR *lqr = LQR_get();
+    if (lqr != NULL) {
+        Motor_SetOutputTorque((Motor_Base *)wheel_l, lqr->TL * TORQUE_TEST_SCALE);
+        Motor_SetOutputTorque((Motor_Base *)wheel_r, lqr->TR * TORQUE_TEST_SCALE);
     }
 }
 
