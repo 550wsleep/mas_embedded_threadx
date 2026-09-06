@@ -4,7 +4,7 @@
 
 # 目标机器人 & 板型
 set(ROBOT "hero2" CACHE STRING "Target robot")
-set_property(CACHE ROBOT PROPERTY STRINGS hero2 hero engineer infantry3 infantry4 infantry5 drone sentry darts customcontrol)
+set_property(CACHE ROBOT PROPERTY STRINGS hero2 hero engineer infantry3 infantry4 infantry5 drone sentry darts customcontrol infantrytest)
 set(BOARD "chassis" CACHE STRING "Board role")
 set_property(CACHE BOARD PROPERTY STRINGS single gimbal chassis)
 
