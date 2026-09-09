@@ -16,7 +16,7 @@
 #define phi_1_offset 173.92f
 #define phi_4_offset 6.08f
 
-#define AGC 50.0f//重力补偿
+#define ROBOT_MASS 16.0f
 //观测器
 typedef struct
 {

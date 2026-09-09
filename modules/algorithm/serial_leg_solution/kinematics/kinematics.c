@@ -52,7 +52,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     out->phi_0 = phi_0;
 
     // 9. 计算腿部摆动角度theta
-    out->theta = PI/2.0f - (phi_0 + pitch);
+    out->theta = -(PI/2.0f - phi_0 + pitch);
 
     float sigma1=arm_sin_f32(phi_3-phi_2);
 	float sigma2=arm_sin_f32(phi_3-phi_4);
@@ -84,7 +84,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
 	out->dL_0    = (YC*sigma14+sigma11*sigma15)/(L_0);
 	out->dphi_0  = -(sigma14*sigma11-YC*sigma15)/(YC*YC+sigma11*sigma11);
 
-    out->dtheta = -(out->dphi_0 + dpitch);
+    out->dtheta = out->dphi_0 - dpitch;
 }
 
 

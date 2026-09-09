@@ -31,13 +31,12 @@
  * ========== M3508 轮毂电机 (CAN1) ==========
  *   # | 变量    | 位置 | 安装 | 反转 | CAN ID
  *   --|---------|------|------|------|--------
- *   5 | wheel_l | 左轮 | 反装 |  Y   | 1
- *   6 | wheel_r | 右轮 | 正装 |  N   | 2
+ *   5 | wheel_l | 左轮 | 正装 |  N   | 1
+ *   6 | wheel_r | 右轮 | 反装 |  Y   | 2
  *
  * ========== 控制流水线 (2ms) ==========
  * observer_update → kinematics_calc → length_control
  * → LQR_calc → leg_coor_control → roll_control → gas_spring_calc → VMC_calc
- * → SetOutputTorque × TORQUE_TEST_SCALE(5%)
  *
  * ========== 安全机制 ==========
  * 遥控掉线 或 任意电机离线 → 全部 Stop
@@ -62,7 +61,6 @@
 
 #include <stdint.h>
 
-#define TORQUE_TEST_SCALE 0.05f
 
 static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
@@ -147,18 +145,18 @@ void chassis_init(void)
         },
     };
 
-    /* 左轮 wheel_l (反装) */
+    /* 左轮 wheel_l (正装) */
     dji_config.transport_config.can.tx_id = 1;
     dji_config.offline_init_config.name = "wheel_l";
     dji_config.offline_init_config.beep_times = 5;
-    dji_config.setting_init_config.motor_reverse_flag = 1;
+    dji_config.setting_init_config.motor_reverse_flag = 0;
     wheel_l = Motor_DJI_Init(&dji_config);
 
-    /* 右轮 wheel_r (正装) */
+    /* 右轮 wheel_r (反装) */
     dji_config.transport_config.can.tx_id = 2;
     dji_config.offline_init_config.name = "wheel_r";
     dji_config.offline_init_config.beep_times = 6;
-    dji_config.setting_init_config.motor_reverse_flag = 0;
+    dji_config.setting_init_config.motor_reverse_flag = 1;
     wheel_r = Motor_DJI_Init(&dji_config);
 
     /* ========== 串腿算法模块初始化 ========== */
@@ -223,16 +221,16 @@ void chassis_func(void)
     /* ---- VMC力矩输出 x 5% ---- */
     const VMC *vmc = VMC_get();
     if (vmc != NULL) {
-        Motor_SetOutputTorque((Motor_Base *)hip_4, vmc->T_2_L * TORQUE_TEST_SCALE);
-        Motor_SetOutputTorque((Motor_Base *)hip_3, vmc->T_2_R * TORQUE_TEST_SCALE);
+        Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
+        Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
         //延时200um
-        Motor_SetOutputTorque((Motor_Base *)hip_2, vmc->T_1_R * TORQUE_TEST_SCALE);
-        Motor_SetOutputTorque((Motor_Base *)hip_1, vmc->T_1_L * TORQUE_TEST_SCALE);
+        Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
+        Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
     }
     const LQR *lqr = LQR_get();
     if (lqr != NULL) {
-        Motor_SetOutputTorque((Motor_Base *)wheel_l, lqr->TL * TORQUE_TEST_SCALE);
-        Motor_SetOutputTorque((Motor_Base *)wheel_r, lqr->TR * TORQUE_TEST_SCALE);
+        Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
+        Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
     }
 }
 

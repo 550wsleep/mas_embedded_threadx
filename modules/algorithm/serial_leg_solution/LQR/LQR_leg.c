@@ -57,22 +57,22 @@ void LQR_calc(float target_x, float target_dx)
     LQR_K_calc(K_l, fk_left->L_0);
     LQR_K_calc(K_r, fk_right->L_0);
     
-    // 获取状态量
-    float theta_l = fk_left->theta;
-    float dtheta_l = fk_left->dtheta;
-    float theta_r = fk_right->theta;
-    float dtheta_r = fk_right->dtheta;
-    float x = (obs->x_L + obs->x_R)/2.0f;
-    float dx = (obs->dx_L + obs->dx_R) / 2.0f;
-    float Pitch = obs->pitch;
-    float dPitch = obs->dpitch;
+    // 获取状态量并取反（使VMC加号与Luntui1减号等价）
+    float theta_l = -fk_left->theta;
+    float dtheta_l = -fk_left->dtheta;
+    float theta_r = -fk_right->theta;
+    float dtheta_r = -fk_right->dtheta;
+    float x = -(obs->x_L + obs->x_R)/2.0f;
+    float dx = -(obs->dx_L + obs->dx_R) / 2.0f;
+    float Pitch = -obs->pitch;
+    float dPitch = -obs->dpitch;
 
-    // 左腿控制
-    LQR_ctrl.TL = K_l[0]*theta_l + K_l[1]*dtheta_l + K_l[2]*(x-target_x) + K_l[3]*(dx-target_dx) + K_l[4]*Pitch + K_l[5]*dPitch;
+    // 左腿控制（TL再取反正回来，Tp保持反的）
+    LQR_ctrl.TL = -(K_l[0]*theta_l + K_l[1]*dtheta_l + K_l[2]*(x-target_x) + K_l[3]*(dx-target_dx) + K_l[4]*Pitch + K_l[5]*dPitch);
     LQR_ctrl.Tpl = K_l[6]*theta_l + K_l[7]*dtheta_l + K_l[8]*(x-target_x) + K_l[9]*(dx-target_dx)+ K_l[10]*Pitch + K_l[11]*dPitch;
-  
-    // 右腿控制
-    LQR_ctrl.TR = K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx) + K_r[4]*Pitch + K_r[5]*dPitch;
+
+    // 右腿控制（TL再取反正回来，Tp保持反的）
+    LQR_ctrl.TR = -(K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx) + K_r[4]*Pitch + K_r[5]*dPitch);
     LQR_ctrl.Tpr = K_r[6]*theta_r + K_r[7]*dtheta_r + K_r[8]*(x-target_x) + K_r[9]*(dx-target_dx) + K_r[10]*Pitch + K_r[11]*dPitch;
 }
 

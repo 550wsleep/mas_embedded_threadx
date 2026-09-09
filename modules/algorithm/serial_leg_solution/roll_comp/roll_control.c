@@ -16,13 +16,13 @@ static PIDInstance  roll_pid;
 void roll_init(void)
 {
     PID_Init_Config_s config = {
-        .Kp         = 500.0f,   // 比例（按实际调）
-        .Ki         = 0.0f,     // I=0 → PD
-        .Kd         = 20.0f,    // 微分
-        .MaxOut     = 50.0f,    // ← 输出范围 -50~50
-        .DeadBand   = 0.01f,    // ← 误差死区 ±0.01
-        .Improve    = PID_Integral_Limit | PID_Derivative_On_Measurement,
-        .IntegralLimit = 0.0f,  // I=0 就不用限了
+        .Kp         = 15.0f,
+        .Ki         = 0.0f,
+        .Kd         = 20.0f,
+        .MaxOut     = 25.0f,
+        .DeadBand   = 0.0f,
+        .Improve    = PID_Derivative_On_Measurement,
+        .IntegralLimit = 0.0f,
     };
     PIDInit(&roll_pid, &config);
 }
@@ -31,12 +31,11 @@ void roll_init(void)
 void roll_control()
 {
     const observer *obs = observer_get();
-    
-    float output = PIDCalculate(&roll_pid, obs->roll, 0.0f);
 
-    // 左腿推力补偿 = PID输出
-    roll_ctrl.F_L_roll =  output;   // 左腿补偿
-    roll_ctrl.F_R_roll = -output;   // 右腿反向
+    float output = PIDCalculate(&roll_pid, 0.0f, obs->roll);
+
+    roll_ctrl.F_L_roll =  output;
+    roll_ctrl.F_R_roll = -output;
 }
 
 
@@ -44,5 +43,3 @@ const roll_compf *roll_comf_get()
 {
     return &roll_ctrl;
 }
-
-
