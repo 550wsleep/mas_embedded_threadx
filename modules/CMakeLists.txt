@@ -145,6 +145,12 @@ if(MODULE_SERIAL_LEG_SOLUTION)
         ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/serial_leg_solution/gas_spring
     )
 endif()
+if(MODULE_LORA)
+    list(APPEND _module_sources
+        LORA/module_lora.c
+    )
+    list(APPEND _module_includes ${CMAKE_CURRENT_SOURCE_DIR}/LORA)
+endif()
 
 if(MODULE_VOFA)
     list(APPEND _module_sources
