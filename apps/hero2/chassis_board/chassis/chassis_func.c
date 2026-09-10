@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-08-28 21:08:45
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-09-04 21:55:19
+ * @LastEditTime: 2026-09-10 20:02:16
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -32,7 +32,7 @@
  *   # | 变量    | 位置 | 安装 | 反转 | CAN ID
  *   --|---------|------|------|------|--------
  *   5 | wheel_l | 左轮 | 正装 |  N   | 1
- *   6 | wheel_r | 右轮 | 反装 |  Y   | 2
+ *   6 | wheel_r | 右轮 | 反装 |  Y   | 4
  *
  * ========== 控制流水线 (2ms) ==========
  * observer_update → kinematics_calc → length_control
@@ -152,8 +152,8 @@ void chassis_init(void)
     dji_config.setting_init_config.motor_reverse_flag = 0;
     wheel_l = Motor_DJI_Init(&dji_config);
 
-    /* 右轮 wheel_r (反装) */
-    dji_config.transport_config.can.tx_id = 2;
+    /* 右轮 wheel_r (反装, CAN ID=4, 与 luntui1 硬件一致: 电调拨码4, 0x200帧data[6-7]) */
+    dji_config.transport_config.can.tx_id = 4;
     dji_config.offline_init_config.name = "wheel_r";
     dji_config.offline_init_config.beep_times = 6;
     dji_config.setting_init_config.motor_reverse_flag = 1;
@@ -207,6 +207,16 @@ void chassis_func(void)
         return;
     }
 
+    /* ---- 掉线恢复后重新使能 (Motor_Stop 清 enableflag, 必须恢复, 对齐 sentry 范式) ---- */
+    for (int i = 0; i < 4; i++) {
+        if (joints[i] != NULL)
+            Motor_Start((Motor_Base *)joints[i]);
+    }
+    for (int i = 0; i < 2; i++) {
+        if (wheels[i] != NULL)
+            Motor_Start((Motor_Base *)wheels[i]);
+    }
+
     /* ---- 控制流水线 ---- */
     BSP_DWT_Delay(0.0002f); /* 200us */
     observer_update(joints, wheels);
@@ -221,16 +231,18 @@ void chassis_func(void)
     /* ---- VMC力矩输出 x 5% ---- */
     const VMC *vmc = VMC_get();
     if (vmc != NULL) {
-        Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
-        Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
+        //Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
+        //Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
         //延时200um
-        Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
-        Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
+        //Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
+        //Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
     }
     const LQR *lqr = LQR_get();
     if (lqr != NULL) {
-        Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
-        Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
+        //Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
+        //Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
+        Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.5f);
+        Motor_SetOutputTorque((Motor_Base *)wheel_r, -0.5f);
     }
 }
 
