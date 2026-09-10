@@ -10,6 +10,9 @@
 #include "solution_def.h"
 #include "kinematics.h"
 #include "pid.h"
+#include "arm_math.h"
+
+#define LENGTH_COS_EPS 0.1f    // |θ|>84° 防除零, 对应目标腿长上限 1.55m
 
 static Length lenth_ctrl;
 static PIDInstance pid_left;
@@ -17,16 +20,16 @@ static PIDInstance pid_right;
 
 void length_init()
 {
-    lenth_ctrl.target_length_L = 0.2f;
-    lenth_ctrl.target_length_R = 0.2f;
+    lenth_ctrl.target_length_L = 0.155f;
+    lenth_ctrl.target_length_R = 0.155f;
 
     PID_Init_Config_s pd_config = {
-        .Kp       = 1.0f,   // 比例系数（按实际调）
-        .Ki       = 0.0f,     // I=0 就是 PD
-        .Kd       = 0.01f,    // 微分系数（按实际调）
-        .MaxOut   = 1.0f,    // 输出限幅 N
-        .DeadBand = 0.0f,   // 死区 m
-        .Improve  = PID_Derivative_On_Measurement,  // 微分在测量值上算，防突变
+        .Kp       = 400.0f,  // N/m, 与 luntui1 一致
+        .Ki       = 0.0f,
+        .Kd       = 0.0f,
+        .MaxOut   = 50.0f,   // N, luntui1 out_limit=50
+        .DeadBand = 0.0f,
+        .Improve  = PID_Derivative_On_Measurement,
     };
 
     PIDInit(&pid_left,  &pd_config);
@@ -37,9 +40,17 @@ void length_control ()
 {
     const fk *fk_left = kinematics_get_left();
     const fk *fk_right = kinematics_get_right();
-    
+
+    // 目标腿长 = 站立高度 0.155 / cos(θ), 每周期随摆角更新 (同 luntui1)
+    float cos_l = arm_cos_f32(fk_left->theta);
+    float cos_r = arm_cos_f32(fk_right->theta);
+    if (cos_l < LENGTH_COS_EPS) cos_l = LENGTH_COS_EPS;
+    if (cos_r < LENGTH_COS_EPS) cos_r = LENGTH_COS_EPS;
+    lenth_ctrl.target_length_L = 0.155f / cos_l;
+    lenth_ctrl.target_length_R = 0.155f / cos_r;
+
     lenth_ctrl.F_L_pid = PIDCalculate(&pid_left,  fk_left->L_0,  lenth_ctrl.target_length_L);
-    lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R); 
+    lenth_ctrl.F_R_pid = PIDCalculate(&pid_right, fk_right->L_0, lenth_ctrl.target_length_R);
 }
 
 const Length *Length_get()

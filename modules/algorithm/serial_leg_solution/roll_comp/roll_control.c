@@ -9,6 +9,7 @@
 #include "roll_control.h"
 #include "solution_def.h"
 #include "observer.h"
+#include "user_lib.h"
 
 static roll_compf roll_ctrl;
 static PIDInstance  roll_pid;
@@ -16,10 +17,10 @@ static PIDInstance  roll_pid;
 void roll_init(void)
 {
     PID_Init_Config_s config = {
-        .Kp         = 15.0f,
+        .Kp         = 15.0f,     // N/度, 与 luntui1 一致
         .Ki         = 0.0f,
-        .Kd         = 20.0f,
-        .MaxOut     = 25.0f,
+        .Kd         = 0.0f,      // 阻尼在 roll_control() 里用 droll 直接加, 同 luntui1
+        .MaxOut     = 60.0f,     // luntui1 out_limit=60
         .DeadBand   = 0.0f,
         .Improve    = PID_Derivative_On_Measurement,
         .IntegralLimit = 0.0f,
@@ -32,10 +33,16 @@ void roll_control()
 {
     const observer *obs = observer_get();
 
-    float output = PIDCalculate(&roll_pid, 0.0f, obs->roll);
+    // 与 luntui1 等价:
+    //   luntui1: roll_out = -15*INS.Roll(度) - 20*INS.Gyro[1]
+    //            F_L = G - roll_out = G + 15*Roll(度) + 20*Gyro[1]
+    //   mas 符号链: obs->roll = -INS.Roll(rad), obs->droll = -INS.Gyro[1]
+    //            → F_L_roll = 15*roll_deg + 20*droll, F_R_roll 取反
+    float roll_deg = obs->roll / DEGREE_2_RAD;           // rad → 度
+    float output   = PIDCalculate(&roll_pid, 0.0f, roll_deg);
 
-    roll_ctrl.F_L_roll =  output;
-    roll_ctrl.F_R_roll = -output;
+    roll_ctrl.F_L_roll =  output + 20.0f * obs->droll;   // 20*Gyro[1] 阻尼项
+    roll_ctrl.F_R_roll = -output - 20.0f * obs->droll;
 }
 
 
