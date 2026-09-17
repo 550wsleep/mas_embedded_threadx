@@ -81,7 +81,7 @@ void chassis_init(void)
         },
         .motor_init_info = {
             .motor_type = DM8009,
-            .max_torque = 30.0f,
+            .max_torque = 54.0f,   /* 对齐字段量程（luntui1 J8009 ±54）；OPEN_LOOP 下为死配置，仅作语义标注 */
         },
         .transport = MOTOR_TRANSPORT_CAN,
         .transport_config = {
