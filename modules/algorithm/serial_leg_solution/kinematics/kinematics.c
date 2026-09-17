@@ -33,18 +33,23 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     float A0 = 2 * L_2 * (XD - XB);
     float B0 = 2 * L_2 * (YD - YB);
     float C0 = L_2 * L_2 + LBD_2 - L_3 * L_3;
-    float phi_2 = 2 * atan2f((B0 + sqrt(A0*A0 + B0*B0 - C0*C0)), A0 + C0);
+    /* 数值保护: sqrt 参数为负时置0, 防 NaN 传播 (对齐 luntui1 var_D 保护) */
+    float disc = A0*A0 + B0*B0 - C0*C0;
+    if (disc < 0.0f) disc = 0.0f;
+    float phi_2 = 2 * atan2f((B0 + sqrtf(disc)), A0 + C0);
     out->phi_2 = phi_2;
 
     // 5. 求解phi3
     float phi_3 = atan2f(YB - YD + L_2 * arm_sin_f32(phi_2), XB - XD + L_2 * arm_cos_f32(phi_2));
-    
+
     // 6. 计算C点坐标
     float XC = L_1 * arm_cos_f32(phi_1) + L_2 * arm_cos_f32(phi_2);
-    float YC = L_1 * arm_sin_f32(phi_1) + L_2 * arm_sin_f32(phi_2);  
+    float YC = L_1 * arm_sin_f32(phi_1) + L_2 * arm_sin_f32(phi_2);
 
     // 7. 计算摆杆长度L0
-    float L_0 = sqrt(XC * XC + YC * YC);
+    float L_0 = sqrtf(XC * XC + YC * YC);
+    /* 数值保护: 腿折叠 L0→0 时防除零 (对齐 luntui1 l0<EPS 保护) */
+    if (L_0 < KIN_EPS) L_0 = KIN_EPS;
     out->L_0 = L_0;
 
     // 8. 计算摆杆角度phi0
@@ -55,6 +60,9 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     out->theta = -(PI/2.0f - phi_0 + pitch);
 
     float sigma1=arm_sin_f32(phi_3-phi_2);
+	/* 数值保护: 共线奇异 sin(phi3-phi2)→0 时防除零 */
+	if (fabsf(sigma1) < KIN_EPS)
+	    sigma1 = (sigma1 >= 0.0f) ? KIN_EPS : -KIN_EPS;
 	float sigma2=arm_sin_f32(phi_3-phi_4);
 	float sigma3=arm_sin_f32(phi_1-phi_2);
 	float sigma4=arm_sin_f32(phi_0-phi_3);
@@ -82,7 +90,10 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
 	float sigma14 = sigma10*arm_cos_f32(phi_1)+sigma13*arm_cos_f32(phi_2);
 	float sigma15 = sigma10*arm_sin_f32(phi_1)+sigma13*arm_sin_f32(phi_2);
 	out->dL_0    = (YC*sigma14+sigma11*sigma15)/(L_0);
-	out->dphi_0  = -(sigma14*sigma11-YC*sigma15)/(YC*YC+sigma11*sigma11);
+	/* 数值保护: dphi_0 分母 L0^2 防除零 (对齐 luntui1 边界保护) */
+	float dphi_den = YC*YC + sigma11*sigma11;
+	if (dphi_den < KIN_EPS) dphi_den = KIN_EPS;
+	out->dphi_0  = -(sigma14*sigma11-YC*sigma15)/(dphi_den);
 
     out->dtheta = out->dphi_0 - dpitch;
 }

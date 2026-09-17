@@ -7,6 +7,7 @@
 #define L_2       0.25f
 #define L_3       0.25f
 #define L_4       0.21f
+#define KIN_EPS   1e-4f   /* 数值保护阈值 (对齐 luntui1 边界保护) */
 
 
 void kinematics_calc(void);
