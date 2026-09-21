@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-08-28 21:08:45
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-09-10 20:02:16
+ * @LastEditTime: 2026-09-17 22:46:42
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -231,18 +231,23 @@ void chassis_func(void)
     /* ---- VMC力矩输出 x 5% ---- */
     const VMC *vmc = VMC_get();
     if (vmc != NULL) {
-        //Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
-        //Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
-        //延时200um
-        //Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
-        //Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
+        Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);
+        Motor_SetOutputTorque((Motor_Base *)hip_3, -vmc->T_2_R);
+        Motor_SetOutputTorque((Motor_Base *)hip_2, -vmc->T_1_R);
+        Motor_SetOutputTorque((Motor_Base *)hip_1,  vmc->T_1_L);
+
+        // Motor_SetOutputTorque((Motor_Base *)hip_4,  0.0f);
+        //Motor_SetOutputTorque((Motor_Base *)hip_3,  0.0f);
+        //Motor_SetOutputTorque((Motor_Base *)hip_2,  0.0f);
+        // Motor_SetOutputTorque((Motor_Base *)hip_1,  0.0f);
     }
     const LQR *lqr = LQR_get();
     if (lqr != NULL) {
-        //Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
-        //Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
-        Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.5f);
-        Motor_SetOutputTorque((Motor_Base *)wheel_r, -0.5f);
+        // Motor_SetOutputTorque((Motor_Base *)wheel_l,  lqr->TL);
+        // Motor_SetOutputTorque((Motor_Base *)wheel_r, -lqr->TR);
+
+        Motor_SetOutputTorque((Motor_Base *)wheel_l,  0.0f);
+        Motor_SetOutputTorque((Motor_Base *)wheel_r,  0.0f);
     }
 }
 
