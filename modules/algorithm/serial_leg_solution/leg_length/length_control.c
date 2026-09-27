@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-07-26 20:23:17
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-07-26 20:52:03
+ * @LastEditTime: 2026-09-23 20:30:35
  * @FilePath: \mas_embedded_threadx\modules\algorithm\serial_leg_solution\leg_length\length_control.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */

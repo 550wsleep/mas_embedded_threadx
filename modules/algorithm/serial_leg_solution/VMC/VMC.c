@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-07-26 12:10:31
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-09-21 17:00:26
+ * @LastEditTime: 2026-09-23 18:17:07
  * @FilePath: \mas_embedded_threadx\modules\algorithm\serial_leg_solution\VMC\VMC.c
  * @Description: VMC虚功解算
  */
@@ -18,7 +18,14 @@
 #include "arm_math.h"
 
 static VMC VMC_ctrl;
-//float F_L;
+// float F_L;
+// float F_R;
+// float Tp_L;
+// float Tp_R;
+//float FPIDL;
+//float FPIDR;
+
+
 
 void  VMC_calc()
 {
@@ -37,11 +44,20 @@ void  VMC_calc()
     float Tp_R = lqr->Tpr + coor->Tp_R_coor;
     
     //F_L = gs->Fs_L;
-    // float F_L = le->F_L_pid - gs->Fs_L;
-    // float F_R = le->F_R_pid - gs->Fs_R;
+    // float F_L = - gs->Fs_L;
+    // float F_R = - gs->Fs_R;
 
-    //float Tp_L = 0.0f;
-    //float Tp_R = 0.0f;
+    // FPIDL = - 0.5f * (le->F_L_pid);
+    // FPIDR = - 0.5f * (le->F_R_pid);
+
+    // float Tp_L = 0.0f;
+    // float Tp_R = 0.0f;
+
+    // F_L = ROBOT_MASS * 9.8f / 2.0f / arm_cos_f32(ki_L->theta) - rc->F_L_roll + le->F_L_pid - gs->Fs_L;
+    // F_R = ROBOT_MASS * 9.8f / 2.0f / arm_cos_f32(ki_R->theta) - rc->F_R_roll + le->F_R_pid - gs->Fs_R;
+
+    // Tp_L = lqr->Tpl + coor->Tp_L_coor;
+    // Tp_R = lqr->Tpr + coor->Tp_R_coor;
 
     VMC_ctrl.T_1_L = ki_L->J_11 * F_L + ki_L->J_21 * Tp_L;
     VMC_ctrl.T_2_L = ki_L->J_12 * F_L + ki_L->J_22 * Tp_L;

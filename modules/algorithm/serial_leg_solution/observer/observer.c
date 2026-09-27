@@ -39,8 +39,8 @@ void observer_init(DM_Motor_t *motor_8009[], DJI_Motor_t *motor_3508[])
     // C板安装: gyro[0]=左, gyro[1]=后, gyro[2]=上
     // INS euler: euler_rad[0]=后, euler_rad[1]=左, euler_rad[2]=上
     // pitch=绕左转, roll=绕前转=-绕后转
-    obs.pitch   = ins->euler_rad[1];
-    obs.dpitch  = bmi->gyro[0];
+    obs.pitch   = -ins->euler_rad[1];  /* 对齐 luntui1: Body.Pitch = -INS.Pitch */
+    obs.dpitch  = -bmi->gyro[0];       /* 对齐 luntui1: Body.dPitch = -INS.dpitch */
     obs.roll    = -ins->euler_rad[0];
     obs.droll   = -bmi->gyro[1];
     obs.yaw     = ins->euler_rad[2];
@@ -62,8 +62,8 @@ void observer_update(DM_Motor_t *motor_8009[], DJI_Motor_t *motor_3508[])
     obs.x_R     = motor_3508[1]->base.measure.total_angle*WHEEL_R;
     obs.dx_R    = motor_3508[1]->base.measure.speed_rad*WHEEL_R;
 
-    obs.pitch   = ins->euler_rad[1];
-    obs.dpitch  = bmi->gyro[0];
+    obs.pitch   = -ins->euler_rad[1];  /* 对齐 luntui1: Body.Pitch = -INS.Pitch */
+    obs.dpitch  = -bmi->gyro[0];       /* 对齐 luntui1: Body.dPitch = -INS.dpitch */
     obs.roll    = -ins->euler_rad[0];
     obs.droll   = -bmi->gyro[1];
     obs.yaw     = ins->euler_rad[2];
