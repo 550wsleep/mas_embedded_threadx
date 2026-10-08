@@ -31,16 +31,18 @@ void observer_init(DM_Motor_t *motor_8009[], DJI_Motor_t *motor_3508[])
     obs.dphi_1_R = - motor_8009[2]->base.measure.speed_rad;
     obs.phi_4_R = - motor_8009[1]->base.measure.single_round_angle+phi_4_offset*DEGREE_2_RAD;
     obs.dphi_4_R = - motor_8009[1]->base.measure.speed_rad;
-    obs.x_L     = motor_3508[0]->base.measure.total_angle*WHEEL_R;
-    obs.dx_L    = motor_3508[0]->base.measure.speed_rad*WHEEL_R;
-    obs.x_R     = motor_3508[1]->base.measure.total_angle*WHEEL_R;
-    obs.dx_R    = motor_3508[1]->base.measure.speed_rad*WHEEL_R;
+    /* 左轮反馈取负 (两轮镜像安装, 前进时左轮 3508 转速为负) 存疑待修改 */
+    /* 3508 反馈为转子量, 轮子位移/速度需 ÷gear_ratio */
+    obs.x_L     = -motor_3508[0]->base.measure.total_angle / motor_3508[0]->base.info.gear_ratio * WHEEL_R;
+    obs.dx_L    = -motor_3508[0]->base.measure.speed_rad / motor_3508[0]->base.info.gear_ratio * WHEEL_R;
+    obs.x_R     = motor_3508[1]->base.measure.total_angle / motor_3508[1]->base.info.gear_ratio * WHEEL_R;
+    obs.dx_R    = motor_3508[1]->base.measure.speed_rad / motor_3508[1]->base.info.gear_ratio * WHEEL_R;
 
     // C板安装: gyro[0]=左, gyro[1]=后, gyro[2]=上
     // INS euler: euler_rad[0]=后, euler_rad[1]=左, euler_rad[2]=上
     // pitch=绕左转, roll=绕前转=-绕后转
-    obs.pitch   = -ins->euler_rad[1];  /* 对齐 luntui1: Body.Pitch = -INS.Pitch */
-    obs.dpitch  = -bmi->gyro[0];       /* 对齐 luntui1: Body.dPitch = -INS.dpitch */
+    obs.pitch   = -ins->euler_rad[1];  /* 机体俯仰角 (绕左轴, 与 INS 约定相反) */
+    obs.dpitch  = -bmi->gyro[0];       /* 机体俯仰角速度 */
     obs.roll    = -ins->euler_rad[0];
     obs.droll   = -bmi->gyro[1];
     obs.yaw     = ins->euler_rad[2];
@@ -57,13 +59,15 @@ void observer_update(DM_Motor_t *motor_8009[], DJI_Motor_t *motor_3508[])
     obs.dphi_1_R = - motor_8009[2]->base.measure.speed_rad;
     obs.phi_4_R = - motor_8009[1]->base.measure.single_round_angle+phi_4_offset*DEGREE_2_RAD;
     obs.dphi_4_R = - motor_8009[1]->base.measure.speed_rad;
-    obs.x_L     = motor_3508[0]->base.measure.total_angle*WHEEL_R;
-    obs.dx_L    = motor_3508[0]->base.measure.speed_rad*WHEEL_R;
-    obs.x_R     = motor_3508[1]->base.measure.total_angle*WHEEL_R;
-    obs.dx_R    = motor_3508[1]->base.measure.speed_rad*WHEEL_R;
+    /* 左轮反馈取负 (两轮镜像安装, 前进时左轮 3508 转速为负) 存疑待修改 */
+    /* 3508 反馈为转子量, 轮子位移/速度需 ÷gear_ratio */
+    obs.x_L     = -motor_3508[0]->base.measure.total_angle / motor_3508[0]->base.info.gear_ratio * WHEEL_R;
+    obs.dx_L    = -motor_3508[0]->base.measure.speed_rad / motor_3508[0]->base.info.gear_ratio * WHEEL_R;
+    obs.x_R     = motor_3508[1]->base.measure.total_angle / motor_3508[1]->base.info.gear_ratio * WHEEL_R;
+    obs.dx_R    = motor_3508[1]->base.measure.speed_rad / motor_3508[1]->base.info.gear_ratio * WHEEL_R;
 
-    obs.pitch   = -ins->euler_rad[1];  /* 对齐 luntui1: Body.Pitch = -INS.Pitch */
-    obs.dpitch  = -bmi->gyro[0];       /* 对齐 luntui1: Body.dPitch = -INS.dpitch */
+    obs.pitch   = -ins->euler_rad[1];  /* 机体俯仰角 (绕左轴, 与 INS 约定相反) */
+    obs.dpitch  = -bmi->gyro[0];       /* 机体俯仰角速度 */
     obs.roll    = -ins->euler_rad[0];
     obs.droll   = -bmi->gyro[1];
     obs.yaw     = ins->euler_rad[2];
