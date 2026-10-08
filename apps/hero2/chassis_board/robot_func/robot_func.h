@@ -1,7 +1,12 @@
 #ifndef _ROBOT_FUNC_H_
 #define _ROBOT_FUNC_H_
 
-// 机器人功能模块 (裁判系统、板间通讯等)
-// 暂时为空, 后续添加
+#include "hero2_def.h"
 
-#endif // _ROBOT_FUNC_H_
+/**
+ * @brief 根据遥控器输入设置底盘控制命令
+ * @param cmd 底盘控制命令结构体指针
+ */
+void RemoteControlSet(Chassis_Ctrl_Cmd_t *cmd);
+
+#endif

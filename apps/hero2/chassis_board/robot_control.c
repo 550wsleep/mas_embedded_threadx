@@ -18,18 +18,21 @@
 #include "tx_api.h"
 #include "bsp_def.h"
 #include "chassis_func.h"
+#include "robot_func.h"
 #include "user_lib.h"
 #include "module_offline.h"
 
 
 static TX_THREAD                  robot_control_thread;
 APPS_STACK_SECTION static uint8_t robot_control_thread_stack[1024];
+static Chassis_Ctrl_Cmd_t chassis_cmd;
 
 static void robot_control_task(ULONG thread_input)
 {
     while (1)
     {
-        chassis_func();
+        RemoteControlSet(&chassis_cmd);
+        chassis_func(&chassis_cmd);
         tx_thread_sleep(2);
     }
 }

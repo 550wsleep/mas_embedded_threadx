@@ -2,7 +2,7 @@
  * @Author: 550wsleep 1329258004@qq.com
  * @Date: 2026-08-28 21:08:45
  * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-09-23 20:42:48
+ * @LastEditTime: 2026-09-27 20:53:54
  * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\chassis\chassis_func.c
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -35,7 +35,7 @@
  *   6 | wheel_r | 右轮 | 反装 |  Y   | 4
  *
  * ========== 控制流水线 (2ms) ==========
- * observer_update → kinematics_calc → length_control
+ * observer_update → kinematics_calc → car_state_update → length_control
  * → LQR_calc → leg_coor_control → roll_control → gas_spring_calc → VMC_calc
  *
  * ========== 安全机制 ==========
@@ -52,6 +52,7 @@
 
 #include "observer.h"
 #include "kinematics.h"
+#include "car_state.h"
 #include "length_control.h"
 #include "LQR_leg.h"
 #include "leg_coor.h"
@@ -64,6 +65,14 @@
 
 static DM_Motor_t *hip_1, *hip_2, *hip_3, *hip_4;
 static DJI_Motor_t *wheel_l, *wheel_r;
+static float march_displacement = 0.0f;   /* 位移目标斜坡 */
+
+static void target_update(float speed_cmd)
+{
+    /* 遥控位移目标: 通道值逐周期累加 (无界, 想走多远走多远; 缓加速后续再加) */
+    march_displacement += speed_cmd * 0.002f;
+    LQR_calc(-march_displacement, 0.0f);
+}
 
 void chassis_init(void)
 {
@@ -81,7 +90,7 @@ void chassis_init(void)
         },
         .motor_init_info = {
             .motor_type = DM8009,
-            .max_torque = 54.0f,   /* 对齐字段量程（luntui1 J8009 ±54）；OPEN_LOOP 下为死配置，仅作语义标注 */
+            .max_torque = 54.0f,   /* OPEN_LOOP 下为死配置, 仅作语义标注 */
         },
         .transport = MOTOR_TRANSPORT_CAN,
         .transport_config = {
@@ -168,10 +177,13 @@ void chassis_init(void)
     leg_coor_init();
     roll_init();
     gas_spring_init();
+    car_state_init();
 }
 
-void chassis_func(void)
+void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
 {
+    if (chassis_cmd == NULL) return;
+
     /* ---- 安全检测 ---- */
     uint8_t remote_status = Module_Remote_get_offline_status();
     bool remote_online = (remote_status != 0 && remote_status != 2);
@@ -204,6 +216,8 @@ void chassis_func(void)
             if (wheels[i] != NULL)
                 Motor_Stop((Motor_Base *)wheels[i]);
         }
+        car_state_reset();      /* 掉线: 回起立态, 恢复后重新起立 */
+        march_displacement = 0.0f;   /* 掉线: 位移目标归零 */
         return;
     }
 
@@ -221,14 +235,17 @@ void chassis_func(void)
     BSP_DWT_Delay(0.0002f); /* 200us */
     observer_update(joints, wheels);
     kinematics_calc();
+    car_state_update(); /* 起立/平衡判据 (运动学之后) */
     length_control();
-    LQR_calc(0.0f, 0.0f);
+
+    target_update(chassis_cmd->body_target_dx);
+
     leg_coor_control();
     roll_control();
     gas_spring_calc();
     VMC_calc();
 
-    /* ---- VMC力矩输出 x 5% ---- */
+    /* ---- VMC 力矩输出 ---- */
     const VMC *vmc = VMC_get();
     if (vmc != NULL) {
         Motor_SetOutputTorque((Motor_Base *)hip_4,  vmc->T_2_L);

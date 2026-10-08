@@ -1,16 +1,18 @@
 /*
- * @Author: 550wsleep 1329258004@qq.com
- * @Date: 2026-08-28 21:08:51
- * @LastEditors: 550wsleep 1329258004@qq.com
- * @LastEditTime: 2026-08-28 21:09:04
- * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\robot_func\robot_func.c
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
-/*
- * @Author: 550wsleep
- * @Date: 2026-08-28
- * @FilePath: \mas_embedded_threadx\apps\hero2\chassis_board\robot_func\robot_func.c
- * @Description: 机器人功能模块 (裁判系统、板间通讯等)
- *              暂时为空, 后续添加
+ * @Description: 遥控器业务解析: 通道值 → 底盘控制命令
+ *               (SBUS 协议解析在 REMOTE 模块层完成, 此处只做映射)
  */
 #include "robot_func.h"
+#include "module_remote.h"
+#include <stddef.h>
+
+void RemoteControlSet(Chassis_Ctrl_Cmd_t *cmd)
+{
+    if (cmd == NULL) return;
+
+    /* 右摇杆: CH2 上下 → 前后速度 (上推为正; 偏移/死区已在 REMOTE 模块解码层处理) */
+    cmd->body_target_dx = (float)Module_Remote_get_channel(2)
+                        / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS) * 2.0f;
+    cmd->turn_cmd       = (float)Module_Remote_get_channel(1)
+                        / (float)(SBUS_CHX_DOWN - SBUS_CHX_BIAS);
+}
