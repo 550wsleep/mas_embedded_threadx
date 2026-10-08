@@ -10,6 +10,7 @@
 #include "solution_def.h"
 #include "observer.h"
 #include "kinematics.h"
+#include "car_state.h"
 
 static LQR LQR_ctrl;
 
@@ -64,16 +65,36 @@ void LQR_calc(float target_x, float target_dx)
     float dtheta_r = -fk_right->dtheta;
     float x = -(obs->x_L + obs->x_R)/2.0f;
     float dx = -(obs->dx_L + obs->dx_R) / 2.0f;
-    float Pitch = -obs->pitch;
-    float dPitch = -obs->dpitch;
 
-    // 左腿控制（TL再取反正回来，Tp保持反的）
-    LQR_ctrl.TL = -(K_l[0]*theta_l + K_l[1]*dtheta_l + K_l[2]*(x-target_x) + K_l[3]*(dx-target_dx) + K_l[4]*Pitch + K_l[5]*dPitch);
-    LQR_ctrl.Tpl = K_l[6]*theta_l + K_l[7]*dtheta_l + K_l[8]*(x-target_x) + K_l[9]*(dx-target_dx)+ K_l[10]*Pitch + K_l[11]*dPitch;
+    if (car_state_get() == STATE_BALANCE)
+    {
+        // ========== 正常平衡: 全量 6 状态反馈 ==========
+        float Pitch  = -obs->pitch;
+        float dPitch = -obs->dpitch;
 
-    // 右腿控制（TL再取反正回来，Tp保持反的）
-    LQR_ctrl.TR = -(K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx) + K_r[4]*Pitch + K_r[5]*dPitch);
-    LQR_ctrl.Tpr = K_r[6]*theta_r + K_r[7]*dtheta_r + K_r[8]*(x-target_x) + K_r[9]*(dx-target_dx) + K_r[10]*Pitch + K_r[11]*dPitch;
+        // 左腿控制（TL再取反正回来，Tp保持反的）
+        LQR_ctrl.TL  = -(K_l[0]*theta_l + K_l[1]*dtheta_l + K_l[2]*(x-target_x) + K_l[3]*(dx-target_dx) + K_l[4]*Pitch + K_l[5]*dPitch);
+        LQR_ctrl.Tpl = K_l[6]*theta_l + K_l[7]*dtheta_l + K_l[8]*(x-target_x) + K_l[9]*(dx-target_dx)+ K_l[10]*Pitch + K_l[11]*dPitch;
+
+        // 右腿控制（TL再取反正回来，Tp保持反的）
+        LQR_ctrl.TR  = -(K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx) + K_r[4]*Pitch + K_r[5]*dPitch);
+        LQR_ctrl.Tpr = K_r[6]*theta_r + K_r[7]*dtheta_r + K_r[8]*(x-target_x) + K_r[9]*(dx-target_dx) + K_r[10]*Pitch + K_r[11]*dPitch;
+    }
+    else
+    {
+        // ========== 起立: 轮矩 4项×5%, Tp 4项×1.5±8/12, 无 pitch 项 ==========
+        float s_l = K_l[0]*theta_l + K_l[1]*dtheta_l + K_l[2]*(x-target_x) + K_l[3]*(dx-target_dx);
+        float s_r = K_r[0]*theta_r + K_r[1]*dtheta_r + K_r[2]*(x-target_x) + K_r[3]*(dx-target_dx);
+        LQR_ctrl.TL = -s_l * 0.05f;
+        LQR_ctrl.TR = -s_r * 0.05f;
+
+        float t_l = K_l[6]*theta_l + K_l[7]*dtheta_l + K_l[8]*(x-target_x) + K_l[9]*(dx-target_dx);
+        float t_r = K_r[6]*theta_r + K_r[7]*dtheta_r + K_r[8]*(x-target_x) + K_r[9]*(dx-target_dx);
+        LQR_ctrl.Tpl = t_l * 1.5f - 8.0f;
+        LQR_ctrl.Tpr = t_r * 1.5f - 8.0f;
+        if (fk_left->theta  < 0.0f) LQR_ctrl.Tpl += 12.0f;
+        if (fk_right->theta < 0.0f) LQR_ctrl.Tpr += 12.0f;
+    }
 }
 
 const LQR *LQR_get(void)

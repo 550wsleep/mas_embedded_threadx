@@ -16,12 +16,13 @@ static PIDInstance  leg_coor_pid;
 void leg_coor_init(void)
 {
     PID_Init_Config_s config = {
-        .Kp       = 100.0f,
-        .Ki       = 0.0f,
-        .Kd       = 10.0f,
-        .MaxOut   = 10.0f,
-        .DeadBand = 0.005f,
-        .Improve  = PID_Derivative_On_Measurement,
+        .Kp            = 100.0f,                   /* 与 luntui1 一致 */
+        .Ki            = 0.5f,                     /* 0.001/周期折算为 SI (÷dt) */
+        .Kd            = 0.016f,                   /* 8/周期折算为 SI (×dt), 误差微分 */
+        .MaxOut        = 50.0f,                    /* N·m */
+        .DeadBand      = 0.0f,                     /* rad */
+        .Improve       = PID_Trapezoid_Intergral | PID_Integral_Limit,  /* 梯形积分 + 积分限幅(须勾选才生效) */
+        .IntegralLimit = 10.0f,                    /* N·m */
     };
     PIDInit(&leg_coor_pid, &config);
 }
