@@ -16,7 +16,7 @@ static PIDInstance  leg_coor_pid;
 void leg_coor_init(void)
 {
     PID_Init_Config_s config = {
-        .Kp            = 100.0f,                   /* 与 luntui1 一致 */
+        .Kp            = 100.0f,                   /* N·m/rad */
         .Ki            = 0.5f,                     /* 0.001/周期折算为 SI (÷dt) */
         .Kd            = 0.016f,                   /* 8/周期折算为 SI (×dt), 误差微分 */
         .MaxOut        = 50.0f,                    /* N·m */

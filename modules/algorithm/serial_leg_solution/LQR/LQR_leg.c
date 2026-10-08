@@ -58,7 +58,7 @@ void LQR_calc(float target_x, float target_dx)
     LQR_K_calc(K_l, fk_left->L_0);
     LQR_K_calc(K_r, fk_right->L_0);
     
-    // 获取状态量并取反（使VMC加号与Luntui1减号等价）
+    // 获取状态量并取反（配合 VMC 中 Tp 的加号组装）
     float theta_l = -fk_left->theta;
     float dtheta_l = -fk_left->dtheta;
     float theta_r = -fk_right->theta;

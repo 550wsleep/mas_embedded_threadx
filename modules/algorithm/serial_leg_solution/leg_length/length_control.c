@@ -25,10 +25,10 @@ void length_init()
     lenth_ctrl.target_length_R = 0.155f;
 
     PID_Init_Config_s pd_config = {
-        .Kp       = 400.0f,  // N/m, 与 luntui1 一致
+        .Kp       = 400.0f,  // N/m
         .Ki       = 0.0f,
         .Kd       = 0.0f,
-        .MaxOut   = 50.0f,   // N, luntui1 out_limit=50
+        .MaxOut   = 50.0f,   // N
         .DeadBand = 0.0f,
         .Improve  = PID_Derivative_On_Measurement,
     };

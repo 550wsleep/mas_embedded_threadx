@@ -69,7 +69,7 @@ static float march_displacement = 0.0f;   /* 位移目标斜坡 */
 
 static void target_update(float speed_cmd)
 {
-    /* 遥控位移目标: 通道值逐周期累加 (无界, 想走多远走多远; 缓加速后续再加) */
+    /* 遥控位移目标: 通道值逐周期累加 (无界积分) */
     march_displacement += speed_cmd * 0.002f;
     LQR_calc(-march_displacement, 0.0f);
 }
@@ -161,7 +161,7 @@ void chassis_init(void)
     dji_config.setting_init_config.motor_reverse_flag = 0;
     wheel_l = Motor_DJI_Init(&dji_config);
 
-    /* 右轮 wheel_r (反装, CAN ID=4, 与 luntui1 硬件一致: 电调拨码4, 0x200帧data[6-7]) */
+    /* 右轮 wheel_r (反装, CAN ID=4, 电调拨码4, 0x200帧data[6-7]) */
     dji_config.transport_config.can.tx_id = 4;
     dji_config.offline_init_config.name = "wheel_r";
     dji_config.offline_init_config.beep_times = 6;
@@ -221,7 +221,7 @@ void chassis_func(Chassis_Ctrl_Cmd_t *chassis_cmd)
         return;
     }
 
-    /* ---- 掉线恢复后重新使能 (Motor_Stop 清 enableflag, 必须恢复, 对齐 sentry 范式) ---- */
+    /* ---- 掉线恢复后重新使能 (Motor_Stop 清 enableflag, 必须恢复, 同 sentry 写法) ---- */
     for (int i = 0; i < 4; i++) {
         if (joints[i] != NULL)
             Motor_Start((Motor_Base *)joints[i]);

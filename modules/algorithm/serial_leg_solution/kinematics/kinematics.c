@@ -33,7 +33,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
     float A0 = 2 * L_2 * (XD - XB);
     float B0 = 2 * L_2 * (YD - YB);
     float C0 = L_2 * L_2 + LBD_2 - L_3 * L_3;
-    /* 数值保护: sqrt 参数为负时置0, 防 NaN 传播 (对齐 luntui1 var_D 保护) */
+    /* 数值保护: sqrt 参数为负时置0, 防 NaN 传播 */
     float disc = A0*A0 + B0*B0 - C0*C0;
     if (disc < 0.0f) disc = 0.0f;
     float phi_2 = 2 * atan2f((B0 + sqrtf(disc)), A0 + C0);
@@ -48,7 +48,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
 
     // 7. 计算摆杆长度L0
     float L_0 = sqrtf(XC * XC + YC * YC);
-    /* 数值保护: 腿折叠 L0→0 时防除零 (对齐 luntui1 l0<EPS 保护) */
+    /* 数值保护: 腿折叠 L0→0 时防除零 */
     if (L_0 < KIN_EPS) L_0 = KIN_EPS;
     out->L_0 = L_0;
 
@@ -90,7 +90,7 @@ static void _kinematics_solve(float phi_1, float phi_4, float pitch, float dpitc
 	float sigma14 = sigma10*arm_cos_f32(phi_1)+sigma13*arm_cos_f32(phi_2);
 	float sigma15 = sigma10*arm_sin_f32(phi_1)+sigma13*arm_sin_f32(phi_2);
 	out->dL_0    = (YC*sigma14+sigma11*sigma15)/(L_0);
-	/* 数值保护: dphi_0 分母 L0^2 防除零 (对齐 luntui1 边界保护) */
+	/* 数值保护: dphi_0 分母 L0^2 防除零 */
 	float dphi_den = YC*YC + sigma11*sigma11;
 	if (dphi_den < KIN_EPS) dphi_den = KIN_EPS;
 	out->dphi_0  = -(sigma14*sigma11-YC*sigma15)/(dphi_den);
