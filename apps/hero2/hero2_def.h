@@ -10,11 +10,19 @@ typedef struct
     float turn_cmd;       /* 转向设定角命令 (rad), CH4, 满推 ±0.15 (符号实车修正) */
 } Chassis_Ctrl_Cmd_t;
 
+/* 云台模式 */
+typedef enum
+{
+    gimbal_zero_force = 0, /* 零力 (CH6下) */
+    gimbal_remote_mode,    /* 遥控 (CH6上) */
+} gimbal_mode;
+
 /* 云台遥控命令 */
 typedef struct
 {
-    int8_t  body_target_dx_gb;        /* yaw角度命令 (rad), 上推为正, ±0.15 */
-    int8_t  turn_cmd_gb;      /* pitch角度命令 (rad), 上推为正, ±0.15 */
+    int8_t  vx_cmd;       
+    float   yaw_cmd;   
+    gimbal_mode gimbal_mode;
 } Gimbal_Ctrl_Cmd_t;
 
 /* 板间通讯帧 (CAN, 8 字节定长) */
